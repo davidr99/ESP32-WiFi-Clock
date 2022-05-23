@@ -16,6 +16,7 @@
 #define TAG_GMT_DOWN            132
 #define TAG_SAVE                131
 #define TAG_WIFI                130
+#define TAG_RECALIBRATE         129
 #define TAG_CLOSE               134
 #define TAG_EXIT                253
 #define TAG_NOTHING             0
@@ -70,12 +71,23 @@ bool ClockConfigScreen::TagSelected(sTagXY *tag, sTrackTag *trackTag)
 
         case TAG_GMT_DOWN:
             _gmtOffset--;
+            if (_gmtOffset < -12) {
+                _gmtOffset = -12;
+            }
             RedrawScreen();
             break;
 
         case TAG_GMT_UP:
             _gmtOffset++;
+            if (_gmtOffset > 12) {
+                _gmtOffset = 12;
+            }
             RedrawScreen();
+            break;
+
+        case TAG_RECALIBRATE:
+            // Tell Main program to recalibrate
+            _status = SCREEN_STATUS_RECALIBRATE;
             break;
 
         case TAG_SAVE:
@@ -146,7 +158,7 @@ bool ClockConfigScreen::Update(FT800Impl<FT_Transport_SPI> *ftImpl)
         ftImpl->ColorRGB(131, 222, 255);
         ftImpl->Begin(FT_RECTS);
         ftImpl->Vertex2ii(129, 99, 0, 0);
-        ftImpl->Vertex2ii(285, 123, 0, 0);
+        ftImpl->Vertex2ii(307, 123, 0, 0);
         ftImpl->End();
         ftImpl->ColorRGB(0, 0, 0);
         ftImpl->Cmd_Text(131, 99, 28, 0, _wifiIP);
@@ -162,7 +174,11 @@ bool ClockConfigScreen::Update(FT800Impl<FT_Transport_SPI> *ftImpl)
         ftImpl->Tag(TAG_SAVE);
         ftImpl->Cmd_Button(6, 228, 63, 36, 27, FT_OPT_FLAT, "Save");
         ftImpl->Tag(TAG_WIFI);
-        ftImpl->Cmd_Button(6, 188, 63, 36, 27, FT_OPT_FLAT, "WIFI");
+        ftImpl->Cmd_Button(6, 136, 107, 36, 27, FT_OPT_FLAT, "WiFi Config");
+        ftImpl->Tag(TAG_RECALIBRATE);
+        ftImpl->Cmd_Button(119, 136, 168, 36, 27, FT_OPT_FLAT, "Recalibrate Screen");
+
+        
         
         ftImpl->Tag(TAG_CLOSE);
         ftImpl->Cmd_Button(401, 229, 72, 36, 27, FT_OPT_FLAT, "Close");

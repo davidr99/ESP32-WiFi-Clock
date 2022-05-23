@@ -17,7 +17,8 @@
 #include "CustomFont.h"
 
 
-FT800IMPL_SPI FTImpl(4, 15);
+//FT800IMPL_SPI FTImpl(4, 15);
+FT800IMPL_SPI FTImpl(16, 21);
 OnscreenKeyboard Keyboard(&FTImpl);
 
 int lastTagId = 0;
@@ -279,6 +280,11 @@ void loop() {
       break;
     case SCREEN_STATUS_CLOCK_CONFIG:
       currentScreen = (ScreenBase *) &clockConfigScreen;
+      currentScreen->Reset();
+      currentScreen->Load();
+      break;
+    case SCREEN_STATUS_RECALIBRATE:
+      Calibrate(true);
       currentScreen->Reset();
       currentScreen->Load();
       break;

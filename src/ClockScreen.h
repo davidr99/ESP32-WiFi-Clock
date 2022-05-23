@@ -14,7 +14,7 @@
 #include <FT800_Onscreen_Keyboard.h>
 #include "RTClib.h"
 
-#define RTC
+//#define RTC
 
 #define TAG_CLOSE               134
 #define TAG_EXIT                253

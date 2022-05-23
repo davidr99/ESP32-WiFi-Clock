@@ -6,3 +6,4 @@
 #define SCREEN_STATUS_WIFI_CONFIG       (2)
 #define SCREEN_STATUS_CLOCK             (3)
 #define SCREEN_STATUS_SAVE_CLOCK_CONFIG (4)
+#define SCREEN_STATUS_RECALIBRATE       (5)
