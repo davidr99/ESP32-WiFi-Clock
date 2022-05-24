@@ -20,6 +20,7 @@
 #define TAG_SAVE_CONNECT        133
 #define TAG_CLOSE               134
 #define TAG_EXIT                253
+#define TAG_SSID                129
 #define TAG_PASSWORD            135
 #define TAG_NOTHING             0
 #define TAG_UNKNOWN             255
@@ -44,6 +45,7 @@ class WiFiConfigScreen : public ScreenBase
       OnscreenKeyboard *_onscreenKeyboard;
       int _wifiScanNumber = 0;
       bool _scanning = false;
+      int32_t _startScanTime = 0;
       bool _showingKeyboard = false;
       int _keyboardAction = -1;
       float _scrollBar = 0;
@@ -51,9 +53,9 @@ class WiFiConfigScreen : public ScreenBase
       char _currentPassword[100];
       WifiClockConfig *_config;
 
-      String _SSIDList[50];
-      int32_t _RSSI[50];
-      wifi_auth_mode_t _SSIDAuth[50];
+      String _SSIDList[150];
+      int32_t _RSSI[150];
+      wifi_auth_mode_t _SSIDAuth[150];
 
       void ScanNetworks();
       void ShowKeyboard(int action = -1);
@@ -71,6 +73,7 @@ void WiFiConfigScreen::ScanNetworks()
 {
   if (!_scanning)
   {
+    _startScanTime = millis();
     _wifiScanNumber = 0;
     RedrawScreen();
     Serial.println("Starting Scan...");
@@ -106,6 +109,13 @@ void WiFiConfigScreen::CloseKeyboard(bool canceled)
       {
         strcpy(_currentPassword, _onscreenKeyboard->GetText());
         Serial.println("Updating Password");
+      }
+      break;
+    case TAG_SSID:
+      if (!canceled)
+      {
+        strcpy(_currentSSID, _onscreenKeyboard->GetText());
+        Serial.println("Updating SSID");
       }
       break;
   }
@@ -162,6 +172,12 @@ bool WiFiConfigScreen::TagSelected(sTagXY *tag, sTrackTag *trackTag)
         _onscreenKeyboard->UpdateScreen();
         break;
 
+      case TAG_SSID:
+        ShowKeyboard(TAG_SSID);
+        _onscreenKeyboard->SetName("SSID");
+        _onscreenKeyboard->UpdateScreen();
+        break;
+
       case TAG_EXIT:
       case TAG_CLOSE:
         this->CloseScreen();
@@ -211,11 +227,18 @@ bool WiFiConfigScreen::Update(FT800Impl<FT_Transport_SPI> *ftImpl)
     RedrawScreen();
   }
 
+  if (_scanning && (_startScanTime + 20000) < millis())
+  {
+    _scanning = false;
+    RedrawScreen();
+  }
+
   if (_needRedraw && !_showingKeyboard)
   {
     _needRedraw = false;
     ftImpl->DLStart();
     
+    ftImpl->Tag(TAG_SSID);
     ftImpl->Clear(1, 1, 1);
     ftImpl->ColorRGB(255, 255, 255);
     ftImpl->Cmd_Text(275, 52, 26, 0, "SSID:");
