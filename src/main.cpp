@@ -290,6 +290,11 @@ void loop() {
       break;
     case SCREEN_STATUS_SAVE_CLOCK_CONFIG:
       SaveConfig();
+      if (!WiFi.getAutoReconnect())
+      {
+        WiFi.setAutoReconnect(false);
+      }
+      
       if (!WiFi.isConnected())
       {
         if (Config.SSID[0] != 0x00)

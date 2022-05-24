@@ -51,6 +51,10 @@ class WiFiConfigScreen : public ScreenBase
       char _currentPassword[100];
       WifiClockConfig *_config;
 
+      String _SSIDList[50];
+      int32_t _RSSI[50];
+      wifi_auth_mode_t _SSIDAuth[50];
+
       void ScanNetworks();
       void ShowKeyboard(int action = -1);
       void CloseKeyboard(bool canceled = false);
@@ -70,6 +74,8 @@ void WiFiConfigScreen::ScanNetworks()
     _wifiScanNumber = 0;
     RedrawScreen();
     Serial.println("Starting Scan...");
+    WiFi.setAutoReconnect(false);
+    delay(500);
     _wifiScanNumber = WiFi.scanNetworks(true);
     _scanning = true;
   }
@@ -124,9 +130,9 @@ bool WiFiConfigScreen::TagSelected(sTagXY *tag, sTrackTag *trackTag)
   } else if (tag->tag >= TAG_BASE_SSID_LIST && tag->tag <= TAG_BASE_SSID_LIST_MAX) {
     int baseNumber = _scrollBar * _wifiScanNumber;
     int i = tag->tag - TAG_BASE_SSID_LIST + baseNumber;
-    if (WiFi.encryptionType(i) != WIFI_AUTH_OPEN)
+    if (_SSIDAuth[i] != WIFI_AUTH_OPEN)
     {
-      strcpy(_currentSSID, WiFi.SSID(i).c_str());
+      strcpy(_currentSSID, _SSIDList[i].c_str());
     }
     RedrawScreen();
   } else {
@@ -196,8 +202,12 @@ bool WiFiConfigScreen::Update(FT800Impl<FT_Transport_SPI> *ftImpl)
       Serial.print(WiFi.RSSI(i));
       Serial.print(")");
       Serial.println((WiFi.encryptionType(i) == WIFI_AUTH_OPEN)?" ":"*");
+      _SSIDList[i] = WiFi.SSID(i).c_str();
+      _RSSI[i] = i;
+      _SSIDAuth[i] = WiFi.encryptionType(i);
       delay(10);
     }
+    WiFi.scanDelete();
     RedrawScreen();
   }
 
@@ -239,7 +249,7 @@ bool WiFiConfigScreen::Update(FT800Impl<FT_Transport_SPI> *ftImpl)
     for(int x = baseNumber; x < min(_wifiScanNumber, baseNumber + 4); x++)
     {
       char showSSID[100];
-      sprintf(showSSID, "%s %s", WiFi.SSID(x).c_str(), (WiFi.encryptionType(x) == WIFI_AUTH_OPEN)?" ":"*"); 
+      sprintf(showSSID, "%s %s", _SSIDList[x].c_str(), (_SSIDAuth[x] == WIFI_AUTH_OPEN)?" ":"*"); 
       ftImpl->Tag(TAG_BASE_SSID_LIST + tagCount);
       ftImpl->Cmd_Button(2, 45 + (30 * (x - baseNumber)), 180, 25, 27, FT_OPT_FLAT, showSSID);
       tagCount++;

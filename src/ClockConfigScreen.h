@@ -88,6 +88,7 @@ bool ClockConfigScreen::TagSelected(sTagXY *tag, sTrackTag *trackTag)
         case TAG_RECALIBRATE:
             // Tell Main program to recalibrate
             _status = SCREEN_STATUS_RECALIBRATE;
+            delay(500);
             break;
 
         case TAG_SAVE:
